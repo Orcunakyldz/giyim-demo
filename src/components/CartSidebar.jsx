@@ -120,48 +120,50 @@ const CartSidebar = ({ isOpen, onClose }) => {
                   </div>
                 </>
               ) : (
-                <div className="checkout-form" style={{ padding: '2rem' }}>
-                  <h3>Sipariş Bilgileri</h3>
-                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                    <div className="input-with-label">
-                      <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>AD SOYAD</label>
-                      <input
-                        type="text"
-                        placeholder="Adınız Soyadınız"
-                        value={customer.name}
-                        onChange={e => setCustomer({ ...customer, name: e.target.value })}
-                        style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px' }}
-                      />
+                <div className="checkout-form" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <div className="form-items-scrollable" style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
+                    <h3>Sipariş Bilgileri</h3>
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+                      <div className="input-with-label">
+                        <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>AD SOYAD</label>
+                        <input
+                          type="text"
+                          placeholder="Adınız Soyadınız"
+                          value={customer.name}
+                          onChange={e => setCustomer({ ...customer, name: e.target.value })}
+                          style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px' }}
+                        />
+                      </div>
+                      <div className="input-with-label">
+                        <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>TELEFON</label>
+                        <input
+                          type="tel"
+                          placeholder="05XX XXX XX XX"
+                          value={customer.phone}
+                          onChange={e => setCustomer({ ...customer, phone: e.target.value })}
+                          style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px' }}
+                        />
+                      </div>
+                      <div className="input-with-label">
+                        <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>ADRES</label>
+                        <textarea
+                          placeholder="Teslimat Adresi"
+                          value={customer.address}
+                          onChange={e => setCustomer({ ...customer, address: e.target.value })}
+                          rows={3}
+                          style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px', resize: 'none' }}
+                        />
+                      </div>
+                      {!currentUser && (
+                        <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.5rem' }}>
+                          💡 <span onClick={() => { closeAndReset(); navigate('/auth'); }} style={{ color: '#000', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Giriş yaparak</span> bilgilerinizi kaydedebilirsiniz.
+                        </p>
+                      )}
                     </div>
-                    <div className="input-with-label">
-                      <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>TELEFON</label>
-                      <input
-                        type="tel"
-                        placeholder="05XX XXX XX XX"
-                        value={customer.phone}
-                        onChange={e => setCustomer({ ...customer, phone: e.target.value })}
-                        style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px' }}
-                      />
-                    </div>
-                    <div className="input-with-label">
-                      <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>ADRES</label>
-                      <textarea
-                        placeholder="Teslimat Adresi"
-                        value={customer.address}
-                        onChange={e => setCustomer({ ...customer, address: e.target.value })}
-                        rows={3}
-                        style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px', resize: 'none' }}
-                      />
-                    </div>
-                    {!currentUser && (
-                      <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.5rem' }}>
-                        💡 <span onClick={() => { closeAndReset(); navigate('/auth'); }} style={{ color: '#000', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Giriş yaparak</span> bilgilerinizi kaydedebilirsiniz.
-                      </p>
-                    )}
                   </div>
                   <div className="cart-footer">
-                    <button className="back-btn" onClick={() => setStep('cart')} style={{ border: 'none', background: 'none', fontWeight: 700, cursor: 'pointer' }}>Geri Dön</button>
-                    <button className="glow-btn whatsapp-btn" onClick={handleCheckout} disabled={isSimulating}>
+                    <button className="back-btn" onClick={() => setStep('cart')} style={{ width: '100%', marginBottom: '1rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Geri Dön</button>
+                    <button className="glow-btn full-btn" onClick={handleCheckout} disabled={isSimulating}>
                       {isSimulating ? 'Sipariş İşleniyor...' : 'Siparişi Tamamla'}
                     </button>
                   </div>
