@@ -8,7 +8,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
     const { categories: shopCategories = [], currentUser, logout } = useShop();
     const navigate = useNavigate();
 
-    // Dynamic Category Logic: Pull from both categories table and products for a robust sync
+    // Dynamic Collection Logic: Pull from both categories table and products for a robust sync
     const { products = [] } = useShop();
 
     // 1. Get all unique categories from products to handle ones not in the categories table
@@ -99,7 +99,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         </div>
 
                         <div className="mobile-menu-section" style={{ marginTop: '2rem', paddingTop: '2rem' }}>
-                            <h3>ERKEK</h3>
+                            <h3>ERKEK KOLEKSİYONU</h3>
                             <div className="mobile-cat-list">
                                 <button className="mobile-cat-item" onClick={() => handleCategoryClick('Hepsi', 'male')}>Tümü</button>
                                 {menCats.map(cat => (

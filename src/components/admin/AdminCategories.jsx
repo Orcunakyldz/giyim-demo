@@ -57,7 +57,7 @@ const AdminCategories = ({ categories }) => {
     };
 
     const handleDelete = async (cat) => {
-        if (window.confirm(`${cat.name} kategorisini silmek istediğinize emin misiniz?`)) {
+        if (window.confirm(`${cat.name} koleksiyonunu silmek istediğinize emin misiniz?`)) {
             await removeCategory(cat.id);
         }
     };
@@ -65,61 +65,79 @@ const AdminCategories = ({ categories }) => {
     return (
         <div className="admin-section">
             <div className={`add-form glass ${editingId ? 'editing' : ''}`}>
-                <h3>{editingId ? 'Kategoriyi Düzenle' : 'Yeni Kategori'}</h3>
+                <h3>{editingId ? 'Koleksiyonu Düzenle' : 'Yeni Koleksiyon Ekle'}</h3>
                 <div className="form-grid">
                     <input
                         type="text"
-                        placeholder="Kategori Adı"
+                        placeholder="Koleksiyon Adı (Örn: Tayt, Tişört)"
                         value={newCategory.name}
-                        onChange={e => setNewCategory({ ...newCategory, name: e.target.value })}
+                        onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
                     />
                     <select
                         value={newCategory.gender}
-                        onChange={e => setNewCategory({ ...newCategory, gender: e.target.value })}
+                        onChange={(e) => setNewCategory(prev => ({ ...prev, gender: e.target.value }))}
                     >
                         <option value="female">Kadın</option>
                         <option value="male">Erkek</option>
                         <option value="unisex">Unisex</option>
                     </select>
 
-                    <input
-                        type="text"
-                        placeholder="Kısa Açıklama (Anasayfa için)"
-                        value={newCategory.description || ''}
-                        onChange={e => setNewCategory({ ...newCategory, description: e.target.value })}
-                        style={{ gridColumn: 'span 2' }}
-                    />
-
-                    <div className="file-input-wrapper">
-                        <label>Koleksiyon Görseli Seç</label>
-                        <input type="file" accept="image/*" onChange={handleImageUpload} />
-                        {newCategory.image && (
-                            <img src={newCategory.image} alt="Preview" style={{ height: '50px', marginTop: '0.5rem', borderRadius: '5px' }} />
-                        )}
+                    <div className="full-width-input" style={{ gridColumn: '1 / -1' }}>
+                        <textarea
+                            placeholder="Koleksiyon Açıklaması (Anasayfada görünür)"
+                            value={newCategory.description}
+                            onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
+                            rows={2}
+                            style={{ width: '100%', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}
+                        />
                     </div>
 
-                    <div className="checkbox-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="full-width-input" style={{ gridColumn: '1 / -1' }}>
+                        <div className="image-upload-wrapper" style={{ border: '2px dashed var(--border)', padding: '1.5rem', borderRadius: '12px', textAlign: 'center' }}>
+                            {newCategory.image ? (
+                                <div style={{ position: 'relative' }}>
+                                    <img src={newCategory.image} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
+                                    <button onClick={() => setNewCategory(prev => ({ ...prev, image: '' }))} style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: '50%', width: '30px', height: '30px', border: 'none' }}>×</button>
+                                </div>
+                            ) : (
+                                <>
+                                    <p style={{ color: '#888', marginBottom: '1rem' }}>Koleksiyon Görseli (E-Ticaret Standartlarında)</p>
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} id="cat-img" style={{ display: 'none' }} />
+                                    <label htmlFor="cat-img" className="glow-btn" style={{ cursor: 'pointer', padding: '0.8rem 1.5rem', fontSize: '0.8rem' }}>Resim Seç</label>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="full-width-input" style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <input
                             type="checkbox"
-                            disabled={isSaving}
-                            id="showOnHome"
+                            id="show_on_home"
                             checked={newCategory.show_on_home}
-                            onChange={e => setNewCategory({ ...newCategory, show_on_home: e.target.checked })}
+                            onChange={(e) => setNewCategory(prev => ({ ...prev, show_on_home: e.target.checked }))}
+                            style={{ width: '20px', height: '20px' }}
                         />
-                        <label htmlFor="showOnHome">Anasayfa Koleksiyonlarında Göster</label>
+                        <label htmlFor="show_on_home" style={{ fontWeight: 700, cursor: 'pointer' }}>Anasayfa "Koleksiyonlar" bölümünde göster</label>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', gridColumn: 'span 2' }}>
+                    <div className="form-actions" style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem' }}>
                         <button className="glow-btn" onClick={handleSave} disabled={isSaving}>
-                            {isSaving ? '...' : (editingId ? 'Güncelle' : 'Ekle')}
+                            {isSaving ? 'Kaydediliyor...' : (editingId ? 'Değişiklikleri Kaydet' : 'Koleksiyon Ekle')}
                         </button>
                         {editingId && (
-                            <button className="glow-btn" onClick={cancelEdit} style={{ background: '#666' }}>İptal</button>
+                            <button className="glow-btn" style={{ background: '#666' }} onClick={() => { setEditingId(null); setNewCategory({ name: '', gender: 'female', image: '', description: '', show_on_home: false }); }}>
+                                İptal
+                            </button>
                         )}
                     </div>
                 </div>
             </div>
+
             <div className="list-container">
+                <div className="section-title-wrapper" style={{ marginBottom: '2rem', textAlign: 'left' }}>
+                    <h2 className="section-title" style={{ fontSize: '1.5rem' }}>Mevcut Koleksiyonlar ({categories.length})</h2>
+                    <div className="title-accent" style={{ margin: '0' }}></div>
+                </div>
                 <div className="admin-grid">
                     {categories?.map((cat, idx) => (
                         <div key={cat.id || idx} className="admin-item glass" style={{ justifyContent: 'space-between' }}>

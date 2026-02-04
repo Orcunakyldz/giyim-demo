@@ -35,7 +35,7 @@ const Admin = () => {
             <Package size={20} /> <span>Ürünler</span>
           </button>
           <button className={activeTab === 'categories' ? 'active' : ''} onClick={() => setActiveTab('categories')}>
-            <Plus size={20} /> <span>Kategoriler</span>
+            <Plus size={20} /> <span>Koleksiyonlar</span>
           </button>
           <button className={activeTab === 'banners' ? 'active' : ''} onClick={() => setActiveTab('banners')}>
             <ImageIcon size={20} /> <span>Reklamlar</span>
@@ -62,7 +62,7 @@ const Admin = () => {
         <header className="content-header">
           <h1>
             {activeTab === 'products' ? 'Ürün Yönetimi' :
-              activeTab === 'categories' ? 'Kategori Yönetimi' :
+              activeTab === 'categories' ? 'Koleksiyon Yönetimi' :
                 activeTab === 'banners' ? 'Reklam Panoları (Billboards)' :
                   activeTab === 'orders' ? 'Siparişler' :
                     activeTab === 'customers' ? 'Müşteri Yönetimi' :

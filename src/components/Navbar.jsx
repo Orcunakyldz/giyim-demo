@@ -23,7 +23,7 @@ const Navbar = () => {
 
             <div className="nav-links">
               <Link to="/shop">Mağaza</Link>
-              <Link to="/">Kategoriler</Link>
+              <Link to="/collections">Koleksiyonlar</Link>
               <Link to="/about">Hakkımızda</Link>
             </div>
 
