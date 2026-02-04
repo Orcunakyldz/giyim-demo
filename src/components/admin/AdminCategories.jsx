@@ -4,6 +4,7 @@ import { useShop } from '../../context/ShopContext';
 
 const AdminCategories = ({ categories }) => {
     const { addCategory, removeCategory } = useShop();
+    const [isSaving, setIsSaving] = useState(false);
     const [newCategory, setNewCategory] = useState({ name: '', gender: 'female' });
 
     const handleAdd = async () => {
@@ -15,8 +16,16 @@ const AdminCategories = ({ categories }) => {
             return;
         }
 
-        await addCategory(newCategory);
-        setNewCategory({ name: '', gender: 'female' });
+        setIsSaving(true);
+        try {
+            await addCategory(newCategory);
+            alert("Kategori başarıyla eklendi!");
+            setNewCategory({ name: '', gender: 'female' });
+        } catch (err) {
+            alert("Hata: " + err.message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleDelete = async (cat) => {

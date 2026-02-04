@@ -4,18 +4,29 @@ import { useShop } from '../../context/ShopContext';
 
 const AdminAnnouncements = ({ announcements }) => {
     const { addAnnouncement, updateAnnouncement, deleteAnnouncement } = useShop();
-    const [editingId, setEditingId] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
     const [newAnnouncement, setNewAnnouncement] = useState({ text: '' });
 
     const handleSave = async () => {
         if (!newAnnouncement.text) return;
-        if (editingId) {
-            await updateAnnouncement(editingId, newAnnouncement.text);
-            setEditingId(null);
-        } else {
-            await addAnnouncement(newAnnouncement.text);
+        setIsSaving(true);
+        try {
+            if (editingId) {
+                const { error } = await updateAnnouncement(editingId, newAnnouncement.text);
+                if (error) throw error;
+                alert("Duyuru güncellendi!");
+                setEditingId(null);
+            } else {
+                const { error } = await addAnnouncement(newAnnouncement.text);
+                if (error) throw error;
+                alert("Yeni duyuru eklendi!");
+            }
+            setNewAnnouncement({ text: '' });
+        } catch (err) {
+            alert("Hata: " + err.message);
+        } finally {
+            setIsSaving(false);
         }
-        setNewAnnouncement({ text: '' });
     };
 
     const startEditAnnouncement = (a) => {
@@ -41,11 +52,11 @@ const AdminAnnouncements = ({ announcements }) => {
                         onChange={e => setNewAnnouncement({ ...newAnnouncement, text: e.target.value })}
                         style={{ flex: 1 }}
                     />
-                    <button className="glow-btn" onClick={handleSave}>
-                        {editingId ? <Save size={18} /> : <Plus size={18} />}
+                    <button className="glow-btn" onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? '...' : (editingId ? <Save size={18} /> : <Plus size={18} />)}
                     </button>
                     {editingId && (
-                        <button className="glow-btn" onClick={cancelEdit} style={{ background: '#666' }}>
+                        <button className="glow-btn" onClick={cancelEdit} style={{ background: '#666' }} disabled={isSaving}>
                             <CloseIcon size={18} />
                         </button>
                     )}

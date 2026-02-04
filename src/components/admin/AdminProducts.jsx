@@ -4,7 +4,7 @@ import { useShop } from '../../context/ShopContext';
 
 const AdminProducts = ({ products, categories }) => {
     const { addProduct, updateProduct, removeProduct } = useShop();
-    const [editingId, setEditingId] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name: '',
         price: '',
@@ -19,33 +19,48 @@ const AdminProducts = ({ products, categories }) => {
     });
 
     const handleSave = async () => {
-        if (!newProduct.name || !newProduct.price) return;
-
-        const finalProduct = {
-            ...newProduct,
-            image: newProduct.images?.length > 0 ? newProduct.images[0] : newProduct.image,
-            price: Number(newProduct.price)
-        };
-
-        if (editingId) {
-            await updateProduct({ ...finalProduct, id: editingId });
-            setEditingId(null);
-        } else {
-            await addProduct(finalProduct);
+        if (!newProduct.name || !newProduct.price) {
+            alert("Lütfen ürün adı ve fiyat bilgisini doldurun.");
+            return;
         }
 
-        setNewProduct({
-            name: '',
-            price: '',
-            category: categories[0]?.name || '',
-            gender: 'female',
-            image: '',
-            images: [],
-            discount: 0,
-            isBestSeller: false,
-            stock: 50,
-            size_stock: { S: 10, M: 10, L: 10, XL: 10 }
-        });
+        setIsSaving(true);
+        try {
+            const finalProduct = {
+                ...newProduct,
+                image: newProduct.images?.length > 0 ? newProduct.images[0] : newProduct.image,
+                price: Number(newProduct.price)
+            };
+
+            if (editingId) {
+                const { error } = await updateProduct({ ...finalProduct, id: editingId });
+                if (error) throw error;
+                alert("Ürün başarıyla güncellendi!");
+                setEditingId(null);
+            } else {
+                const { error } = await addProduct(finalProduct);
+                if (error) throw error;
+                alert("Yeni ürün başarıyla eklendi!");
+            }
+
+            setNewProduct({
+                name: '',
+                price: '',
+                category: categories[0]?.name || '',
+                gender: 'female',
+                image: '',
+                images: [],
+                discount: 0,
+                isBestSeller: false,
+                stock: 50,
+                size_stock: { S: 10, M: 10, L: 10, XL: 10 }
+            });
+        } catch (err) {
+            console.error("Product save error:", err);
+            alert("Kaydedilirken bir hata oluştu: " + (err.message || "Bilinmeyen hata"));
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const startEditProduct = (p) => {
@@ -211,11 +226,11 @@ const AdminProducts = ({ products, categories }) => {
                         <label htmlFor="bestSeller">Ana Sayfada Göster (Çok Satan)</label>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="glow-btn" onClick={handleSave}>
-                            {editingId ? <><Save size={18} /> Kaydet</> : <><Plus size={18} /> Ekle</>}
+                        <button className="glow-btn" onClick={handleSave} disabled={isSaving}>
+                            {isSaving ? 'Kaydediliyor...' : (editingId ? <><Save size={18} /> Kaydet</> : <><Plus size={18} /> Ekle</>)}
                         </button>
                         {editingId && (
-                            <button className="glow-btn" onClick={cancelEdit} style={{ background: '#666' }}>
+                            <button className="glow-btn" onClick={cancelEdit} style={{ background: '#666' }} disabled={isSaving}>
                                 <CloseIcon size={18} /> İptal
                             </button>
                         )}

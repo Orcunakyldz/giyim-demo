@@ -70,7 +70,7 @@ const AdminAbout = ({ aboutData: remoteAboutData }) => {
                     />
                     <div className="file-input-wrapper">
                         <label>Hero Görseli Seç</label>
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (data) => setLocalAboutData({ ...localAboutData, hero: { ...(localAboutData?.hero || {}), image: data } }))} />
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (data) => setLocalAboutData(prev => ({ ...prev, hero: { ...(prev?.hero || {}), image: data } })))} />
                         {localAboutData?.hero?.image && <img src={localAboutData.hero.image} alt="Preview" style={{ height: '50px', marginTop: '0.5rem', borderRadius: '5px' }} />}
                     </div>
                 </div>
@@ -94,7 +94,7 @@ const AdminAbout = ({ aboutData: remoteAboutData }) => {
                     />
                     <div className="file-input-wrapper">
                         <label>Hikaye Görseli Seç</label>
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (data) => setLocalAboutData({ ...localAboutData, story: { ...(localAboutData?.story || {}), image: data } }))} />
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (data) => setLocalAboutData(prev => ({ ...prev, story: { ...(prev?.story || {}), image: data } })))} />
                         {localAboutData?.story?.image && <img src={localAboutData.story.image} alt="Preview" style={{ height: '50px', marginTop: '0.5rem', borderRadius: '5px' }} />}
                     </div>
                 </div>
@@ -106,9 +106,10 @@ const AdminAbout = ({ aboutData: remoteAboutData }) => {
                     <button
                         className="glow-btn"
                         onClick={() => {
-                            const currentGallery = localAboutData.gallery || localAboutData.instagram || [];
-                            const newGallery = [...currentGallery, { image: '', caption: '' }];
-                            setLocalAboutData({ ...localAboutData, gallery: newGallery });
+                            setLocalAboutData(prev => {
+                                const currentGallery = prev.gallery || prev.instagram || [];
+                                return { ...prev, gallery: [...currentGallery, { image: '', caption: '' }] };
+                            });
                         }}
                         style={{ padding: '0.8rem 1.5rem', fontSize: '0.8rem' }}
                     >
@@ -141,16 +142,15 @@ const AdminAbout = ({ aboutData: remoteAboutData }) => {
                                     placeholder="Başlık (İsteğe bağlı)"
                                     value={caption}
                                     onChange={(e) => {
-                                        const currentGallery = localAboutData.gallery || localAboutData.instagram || [];
-                                        const newGallery = currentGallery.map((gItem, gIdx) => {
-                                            if (gIdx !== i) return gItem;
-                                            // Convert string to object if needed
-                                            if (typeof gItem === 'string') {
-                                                return { image: gItem, caption: e.target.value };
-                                            }
-                                            return { ...gItem, caption: e.target.value };
+                                        setLocalAboutData(prev => {
+                                            const currentGallery = prev.gallery || prev.instagram || [];
+                                            const newGallery = currentGallery.map((gItem, gIdx) => {
+                                                if (gIdx !== i) return gItem;
+                                                if (typeof gItem === 'string') return { image: gItem, caption: e.target.value };
+                                                return { ...gItem, caption: e.target.value };
+                                            });
+                                            return { ...prev, gallery: newGallery };
                                         });
-                                        setLocalAboutData({ ...localAboutData, gallery: newGallery });
                                     }}
                                     style={{ width: '100%', padding: '0.5rem', marginBottom: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                                 />
@@ -158,16 +158,15 @@ const AdminAbout = ({ aboutData: remoteAboutData }) => {
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => handleImageUpload(e, (data) => {
-                                        const currentGallery = localAboutData.gallery || localAboutData.instagram || [];
-                                        const newGallery = currentGallery.map((gItem, gIdx) => {
-                                            if (gIdx !== i) return gItem;
-                                            // Convert string to object if needed
-                                            if (typeof gItem === 'string') {
-                                                return { image: data, caption: '' };
-                                            }
-                                            return { ...(gItem || {}), image: data };
+                                        setLocalAboutData(prev => {
+                                            const currentGallery = prev.gallery || prev.instagram || [];
+                                            const newGallery = currentGallery.map((gItem, gIdx) => {
+                                                if (gIdx !== i) return gItem;
+                                                if (typeof gItem === 'string') return { image: data, caption: '' };
+                                                return { ...(gItem || {}), image: data };
+                                            });
+                                            return { ...prev, gallery: newGallery };
                                         });
-                                        setLocalAboutData({ ...localAboutData, gallery: newGallery });
                                     })}
                                 />
                                 {imgSrc && <img src={imgSrc} alt={`Gallery ${i}`} style={{ height: '100px', width: '100%', marginTop: '0.5rem', borderRadius: '5px', objectFit: 'cover' }} />}

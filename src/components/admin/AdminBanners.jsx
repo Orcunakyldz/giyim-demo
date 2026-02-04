@@ -4,7 +4,7 @@ import { useShop } from '../../context/ShopContext';
 
 const AdminBanners = ({ banners }) => {
     const { addBanner, updateBanner, deleteBanner } = useShop();
-    const [editingId, setEditingId] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
     const [newBanner, setNewBanner] = useState({ title: '', subtitle: '', image: '', cta: 'Keşfet' });
 
     const handleImageUpload = (e) => {
@@ -12,21 +12,37 @@ const AdminBanners = ({ banners }) => {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setNewBanner({ ...newBanner, image: reader.result });
+                setNewBanner(prev => ({ ...prev, image: reader.result }));
             };
             reader.readAsDataURL(file);
         }
     };
 
     const handleSave = async () => {
-        if (!newBanner.title || !newBanner.image) return;
-        if (editingId) {
-            await updateBanner({ ...newBanner, id: editingId });
-            setEditingId(null);
-        } else {
-            await addBanner(newBanner);
+        if (!newBanner.title || !newBanner.image) {
+            alert("Lütfen en az bir başlık ve görsel ekleyin.");
+            return;
         }
-        setNewBanner({ title: '', subtitle: '', image: '', cta: 'Keşfet' });
+
+        setIsSaving(true);
+        try {
+            if (editingId) {
+                const { error } = await updateBanner({ ...newBanner, id: editingId });
+                if (error) throw error;
+                alert("Banner başarıyla güncellendi!");
+                setEditingId(null);
+            } else {
+                const { error } = await addBanner(newBanner);
+                if (error) throw error;
+                alert("Yeni banner başarıyla eklendi!");
+            }
+            setNewBanner({ title: '', subtitle: '', image: '', cta: 'Keşfet' });
+        } catch (err) {
+            console.error("Banner save error:", err);
+            alert("Kaydedilirken bir hata oluştu: " + (err.message || "İzin hatası (RLS)"));
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const startEditBanner = (b) => {
@@ -73,11 +89,11 @@ const AdminBanners = ({ banners }) => {
                         onChange={e => setNewBanner({ ...newBanner, cta: e.target.value })}
                     />
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="glow-btn" onClick={handleSave}>
-                            {editingId ? <><Save size={18} /> Kaydet</> : <><Plus size={18} /> Ekle</>}
+                        <button className="glow-btn" onClick={handleSave} disabled={isSaving}>
+                            {isSaving ? 'Kaydediliyor...' : (editingId ? <><Save size={18} /> Kaydet</> : <><Plus size={18} /> Ekle</>)}
                         </button>
                         {editingId && (
-                            <button className="glow-btn" onClick={cancelEdit} style={{ background: '#666' }}>
+                            <button className="glow-btn" onClick={cancelEdit} style={{ background: '#666' }} disabled={isSaving}>
                                 <CloseIcon size={18} /> İptal
                             </button>
                         )}
