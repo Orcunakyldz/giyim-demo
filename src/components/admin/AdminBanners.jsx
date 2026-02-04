@@ -4,6 +4,7 @@ import { useShop } from '../../context/ShopContext';
 
 const AdminBanners = ({ banners }) => {
     const { addBanner, updateBanner, deleteBanner } = useShop();
+    const [editingId, setEditingId] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [newBanner, setNewBanner] = useState({ title: '', subtitle: '', image: '', cta: 'Keşfet' });
 

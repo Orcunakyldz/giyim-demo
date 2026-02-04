@@ -4,6 +4,7 @@ import { useShop } from '../../context/ShopContext';
 
 const AdminProducts = ({ products, categories }) => {
     const { addProduct, updateProduct, removeProduct } = useShop();
+    const [editingId, setEditingId] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name: '',

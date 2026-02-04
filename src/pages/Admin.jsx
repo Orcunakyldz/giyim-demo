@@ -11,6 +11,7 @@ import AdminAnnouncements from '../components/admin/AdminAnnouncements';
 import AdminOrders from '../components/admin/AdminOrders';
 import AdminAbout from '../components/admin/AdminAbout';
 import AdminCustomers from '../components/admin/AdminCustomers';
+import AdminSocial from '../components/admin/AdminSocial';
 
 const Admin = () => {
   const {
@@ -51,6 +52,9 @@ const Admin = () => {
           <button className={activeTab === 'about' ? 'active' : ''} onClick={() => setActiveTab('about')}>
             <Info size={20} /> <span>Hakkımızda</span>
           </button>
+          <button className={activeTab === 'social' ? 'active' : ''} onClick={() => setActiveTab('social')}>
+            <ImageIcon size={20} /> <span>Social Galeri</span>
+          </button>
         </div>
       </div>
 
@@ -62,7 +66,8 @@ const Admin = () => {
                 activeTab === 'banners' ? 'Reklam Panoları (Billboards)' :
                   activeTab === 'orders' ? 'Siparişler' :
                     activeTab === 'customers' ? 'Müşteri Yönetimi' :
-                      activeTab === 'about' ? 'Hakkımızda Sayfası' : 'Duyuru Satırı Yönetimi'}
+                      activeTab === 'about' ? 'Hakkımızda Sayfası' :
+                        activeTab === 'social' ? 'Anasayfa Sosyal Galeri' : 'Duyuru Satırı Yönetimi'}
           </h1>
         </header>
 
@@ -109,6 +114,9 @@ const Admin = () => {
             <AdminAbout
               aboutData={aboutData}
             />
+          )}
+          {activeTab === 'social' && (
+            <AdminSocial />
           )}
         </div>
       </main>

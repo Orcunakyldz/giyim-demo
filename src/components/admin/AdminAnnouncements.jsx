@@ -4,6 +4,7 @@ import { useShop } from '../../context/ShopContext';
 
 const AdminAnnouncements = ({ announcements }) => {
     const { addAnnouncement, updateAnnouncement, deleteAnnouncement } = useShop();
+    const [editingId, setEditingId] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [newAnnouncement, setNewAnnouncement] = useState({ text: '' });
 

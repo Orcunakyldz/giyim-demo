@@ -13,6 +13,7 @@ export const ShopProvider = ({ children }) => {
     const [orders, setOrders] = useState([]);
     const [aboutData, setAboutData] = useState(null);
     const [cart, setCart] = useState([]);
+    const [socialGallery, setSocialGallery] = useState([]);
     const [allProfiles, setAllProfiles] = useState([]);
 
     // Fetch initial data from Supabase
@@ -49,7 +50,11 @@ export const ShopProvider = ({ children }) => {
                 const { data: settingsData } = await supabase.from('site_settings').select('data').eq('id', 'about_data').single();
                 if (settingsData) setAboutData(settingsData.data);
 
-                // 6. Orders (If user logged in)
+                // 6. Social Gallery
+                const { data: socialData } = await supabase.from('social_gallery').select('*').order('created_at', { ascending: false });
+                if (socialData) setSocialGallery(socialData);
+
+                // 7. Orders (If user logged in)
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session?.user) {
                     const { data: ordersData } = await supabase.from('orders').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
@@ -223,6 +228,15 @@ export const ShopProvider = ({ children }) => {
         return { data, error };
     };
 
+    const updateCategory = async (category) => {
+        const { id, ...rest } = category;
+        const { data, error } = await supabase.from('categories').update(rest).eq('id', id).select();
+        if (!error && data && data[0]) {
+            setCategories(prev => prev.map(c => c.id === id ? data[0] : c));
+        }
+        return { data, error };
+    };
+
     const removeCategory = async (id) => {
         const { error } = await supabase.from('categories').delete().eq('id', id);
         if (!error) setCategories(prev => prev.filter(c => c.id !== id));
@@ -279,6 +293,18 @@ export const ShopProvider = ({ children }) => {
         }, { onConflict: 'id' });
 
         if (!error) setAboutData(data);
+        return { error };
+    };
+
+    const addSocialImage = async (image) => {
+        const { data, error } = await supabase.from('social_gallery').insert([{ image }]).select();
+        if (!error && data) setSocialGallery(prev => [data[0], ...prev]);
+        return { data, error };
+    };
+
+    const deleteSocialImage = async (id) => {
+        const { error } = await supabase.from('social_gallery').delete().eq('id', id);
+        if (!error) setSocialGallery(prev => prev.filter(item => item.id !== id));
         return { error };
     };
 
@@ -382,10 +408,11 @@ export const ShopProvider = ({ children }) => {
             currentUser, loading,
             aboutData, setAboutData,
             addProduct, updateProduct, removeProduct,
-            addCategory, removeCategory,
+            addCategory, updateCategory, removeCategory,
             addBanner, updateBanner, deleteBanner,
             addAnnouncement, updateAnnouncement, deleteAnnouncement,
             updateAboutData,
+            socialGallery, addSocialImage, deleteSocialImage,
             register, login, logout, resetPassword, updatePassword,
             allProfiles, fetchCustomers
         }}>
