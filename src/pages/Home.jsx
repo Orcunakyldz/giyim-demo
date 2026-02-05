@@ -8,10 +8,10 @@ import { Truck, RotateCcw, ShieldCheck, Instagram, MessageCircle } from 'lucide-
 
 const Home = () => {
   const navigate = useNavigate();
-  const { categories, products, socialGallery } = useShop();
+  const { collections, products, socialGallery } = useShop();
 
-  // Featured Categories (Collections)
-  const featuredCollections = categories?.filter(c => c.show_on_home) || [];
+  // Featured Collections from dedicated collections table
+  const featuredCollections = collections?.filter(c => c.show_on_home) || [];
 
   return (
     <MainLayout>
@@ -31,13 +31,13 @@ const Home = () => {
                     key={cat.id || index}
                     className={`cat-card dynamic-card ${index % 3 === 0 ? 'large' : 'small'}`}
                     style={{ backgroundImage: `url(${cat.image || 'https://images.unsplash.com/photo-1571244837341-38c44240a5fa'})` }}
-                    onClick={() => navigate(`/shop?cat=${cat.name}`)}
+                    onClick={() => navigate(`/shop?collection=${cat.name}`)}
                   >
                     <div className="cat-overlay"></div>
                     <div className="cat-info-v2">
                       <h3>{cat.name}</h3>
                       <p>{cat.description || 'Yeni Sezon Keşfet'}</p>
-                      <button className="glow-btn-cyan">İncele</button>
+                      <button className="glow-btn-cyan">KOLEKSİYONU KEŞFET</button>
                     </div>
                   </div>
                 ))}

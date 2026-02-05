@@ -1779,6 +1779,19 @@ button {
   margin: 0 auto;
 }
 
+.categories-section {
+  padding: 8rem 0;
+}
+
+.collections-page {
+  padding: 150px 0 100px;
+  min-height: 80vh;
+}
+
+.product-grid-section {
+  padding: 8rem 0;
+}
+
 .cat-grid-asymmetric {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -1851,11 +1864,12 @@ button {
   background: #eee;
   color: #000;
   border: 1px solid #ddd;
-  padding: 1rem 2.5rem;
+  padding: 1.2rem 3rem;
   font-family: 'Oswald', sans-serif;
   text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: var(--transition);
 }

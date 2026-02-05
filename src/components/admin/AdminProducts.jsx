@@ -16,6 +16,7 @@ const AdminProducts = ({ products, categories }) => {
         discount: 0,
         isBestSeller: false,
         stock: 50,
+        collection: '',
         size_stock: { S: 10, M: 10, L: 10, XL: 10 }
     });
 
@@ -54,6 +55,7 @@ const AdminProducts = ({ products, categories }) => {
                 discount: 0,
                 isBestSeller: false,
                 stock: 50,
+                collection: '',
                 size_stock: { S: 10, M: 10, L: 10, XL: 10 }
             });
         } catch (err) {
@@ -101,6 +103,7 @@ const AdminProducts = ({ products, categories }) => {
             discount: 0,
             isBestSeller: false,
             stock: 50,
+            collection: '',
             size_stock: { S: 10, M: 10, L: 10, XL: 10 }
         });
     };
@@ -144,6 +147,28 @@ const AdminProducts = ({ products, categories }) => {
                             <option value="male">Erkek</option>
                             <option value="unisex">Unisex</option>
                         </select>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <select
+                            value={newProduct.collection}
+                            onChange={e => setNewProduct({ ...newProduct, collection: e.target.value })}
+                        >
+                            <option value="">Koleksiyon Seçin (Opsiyonel)</option>
+                            {useShop().collections?.map(col => (
+                                <option key={col.id} value={col.name}>{col.name}</option>
+                            ))}
+                        </select>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <input
+                                type="checkbox"
+                                id="bestSeller"
+                                checked={newProduct.isBestSeller}
+                                onChange={e => setNewProduct({ ...newProduct, isBestSeller: e.target.checked })}
+                                style={{ width: '20px', height: '20px' }}
+                            />
+                            <label htmlFor="bestSeller" style={{ fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}>Anasayfa (Çok Satan)</label>
+                        </div>
                     </div>
 
                     <div className="file-input-wrapper" style={{ gridColumn: 'span 2' }}>
@@ -217,15 +242,6 @@ const AdminProducts = ({ products, categories }) => {
                         </div>
                     </div>
 
-                    <div className="checkbox-field">
-                        <input
-                            type="checkbox"
-                            id="bestSeller"
-                            checked={newProduct.isBestSeller}
-                            onChange={e => setNewProduct({ ...newProduct, isBestSeller: e.target.checked })}
-                        />
-                        <label htmlFor="bestSeller">Ana Sayfada Göster (Çok Satan)</label>
-                    </div>
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <button className="glow-btn" onClick={handleSave} disabled={isSaving}>
                             {isSaving ? 'Kaydediliyor...' : (editingId ? <><Save size={18} /> Kaydet</> : <><Plus size={18} /> Ekle</>)}
@@ -275,7 +291,7 @@ const AdminProducts = ({ products, categories }) => {
                                         </div>
                                     </div>
                                     <small style={{ display: 'block', color: '#888', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.5rem' }}>
-                                        {product.category} | {product.gender === 'female' ? 'Kadın' : 'Erkek'}
+                                        {product.category} | {product.collection || 'Koleksiyon Yok'} | {product.gender === 'female' ? 'Kadın' : 'Erkek'}
                                     </small>
                                 </div>
                                 <div className="item-actions">

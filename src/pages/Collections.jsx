@@ -4,7 +4,7 @@ import { useShop } from '../context/ShopContext';
 import MainLayout from '../components/MainLayout';
 
 const Collections = () => {
-    const { categories, loading } = useShop();
+    const { collections, loading } = useShop();
     const navigate = useNavigate();
 
     if (loading) {
@@ -30,12 +30,12 @@ const Collections = () => {
                     </header>
 
                     <div className="collections-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '3rem' }}>
-                        {categories?.length > 0 ? (
-                            categories.map((cat, idx) => (
+                        {collections?.length > 0 ? (
+                            collections.map((cat, idx) => (
                                 <div
                                     key={cat.id || idx}
                                     className="collection-card dynamic-card"
-                                    onClick={() => navigate(`/shop?cat=${cat.name}`)}
+                                    onClick={() => navigate(`/shop?collection=${cat.name}`)}
                                     style={{
                                         position: 'relative',
                                         height: '500px',
@@ -64,7 +64,7 @@ const Collections = () => {
                                         </span>
                                         <h2 style={{ color: '#fff', fontSize: '2.5rem', fontWeight: 950, marginBottom: '1rem' }}>{cat.name}</h2>
                                         <p style={{ color: '#ccc', marginBottom: '2rem', maxWidth: '400px' }}>{cat.description || 'Yeni sezonun en özel parçalarını yakından inceleyin.'}</p>
-                                        <button className="glow-btn" style={{ background: '#fff', color: '#000' }}>KEŞFET</button>
+                                        <button className="glow-btn" style={{ marginTop: '2rem', padding: '1rem 3rem', letterSpacing: '2px' }}>KOLEKSİYONU KEŞFET</button>
                                     </div>
                                 </div>
                             ))

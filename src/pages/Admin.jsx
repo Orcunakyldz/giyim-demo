@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 // Modular Components
 import AdminProducts from '../components/admin/AdminProducts';
 import AdminCategories from '../components/admin/AdminCategories';
+import AdminCollections from '../components/admin/AdminCollections';
 import AdminBanners from '../components/admin/AdminBanners';
 import AdminAnnouncements from '../components/admin/AdminAnnouncements';
 import AdminOrders from '../components/admin/AdminOrders';
@@ -35,7 +36,10 @@ const Admin = () => {
             <Package size={20} /> <span>Ürünler</span>
           </button>
           <button className={activeTab === 'categories' ? 'active' : ''} onClick={() => setActiveTab('categories')}>
-            <Plus size={20} /> <span>Koleksiyonlar</span>
+            <Plus size={20} /> <span>Kategoriler</span>
+          </button>
+          <button className={activeTab === 'collections' ? 'active' : ''} onClick={() => setActiveTab('collections')}>
+            <ImageIcon size={20} /> <span>Koleksiyonlar</span>
           </button>
           <button className={activeTab === 'banners' ? 'active' : ''} onClick={() => setActiveTab('banners')}>
             <ImageIcon size={20} /> <span>Reklamlar</span>
@@ -62,12 +66,13 @@ const Admin = () => {
         <header className="content-header">
           <h1>
             {activeTab === 'products' ? 'Ürün Yönetimi' :
-              activeTab === 'categories' ? 'Koleksiyon Yönetimi' :
-                activeTab === 'banners' ? 'Reklam Panoları (Billboards)' :
-                  activeTab === 'orders' ? 'Siparişler' :
-                    activeTab === 'customers' ? 'Müşteri Yönetimi' :
-                      activeTab === 'about' ? 'Hakkımızda Sayfası' :
-                        activeTab === 'social' ? 'Anasayfa Sosyal Galeri' : 'Duyuru Satırı Yönetimi'}
+              activeTab === 'categories' ? 'Kategori Yönetimi' :
+                activeTab === 'collections' ? 'Koleksiyon Yönetimi' :
+                  activeTab === 'banners' ? 'Reklam Panoları (Billboards)' :
+                    activeTab === 'orders' ? 'Siparişler' :
+                      activeTab === 'customers' ? 'Müşteri Yönetimi' :
+                        activeTab === 'about' ? 'Hakkımızda Sayfası' :
+                          activeTab === 'social' ? 'Anasayfa Sosyal Galeri' : 'Duyuru Satırı Yönetimi'}
           </h1>
         </header>
 
@@ -83,6 +88,10 @@ const Admin = () => {
             <AdminCategories
               categories={categories}
             />
+          )}
+
+          {activeTab === 'collections' && (
+            <AdminCollections />
           )}
 
           {activeTab === 'banners' && (
@@ -115,6 +124,7 @@ const Admin = () => {
               aboutData={aboutData}
             />
           )}
+
           {activeTab === 'social' && (
             <AdminSocial />
           )}

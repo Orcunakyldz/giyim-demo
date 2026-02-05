@@ -78,6 +78,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         <nav className="mobile-nav-links">
                             <button onClick={() => handleLinkClick('/')}><Home size={24} /> Ana Sayfa</button>
                             <button onClick={() => handleLinkClick('/shop')}><ShoppingBag size={24} /> Mağaza</button>
+                            <button onClick={() => handleLinkClick('/collections')}><Package size={24} /> Koleksiyonlar</button>
 
                             {currentUser ? (
                                 <button onClick={() => handleLinkClick('/account')}><User size={24} /> Hesabım</button>
@@ -87,7 +88,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         </nav>
 
                         <div className="mobile-menu-section">
-                            <h3>KADIN</h3>
+                            <h3>KADIN KATEGORİLERİ</h3>
                             <div className="mobile-cat-list">
                                 <button className="mobile-cat-item" onClick={() => handleCategoryClick('Hepsi', 'female')}>Tümü</button>
                                 {womenCats.map(cat => (
@@ -99,7 +100,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         </div>
 
                         <div className="mobile-menu-section" style={{ marginTop: '2rem', paddingTop: '2rem' }}>
-                            <h3>ERKEK KOLEKSİYONU</h3>
+                            <h3>ERKEK KATEGORİLERİ</h3>
                             <div className="mobile-cat-list">
                                 <button className="mobile-cat-item" onClick={() => handleCategoryClick('Hepsi', 'male')}>Tümü</button>
                                 {menCats.map(cat => (

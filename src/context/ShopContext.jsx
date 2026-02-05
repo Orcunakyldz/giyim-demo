@@ -15,6 +15,7 @@ export const ShopProvider = ({ children }) => {
     const [cart, setCart] = useState([]);
     const [socialGallery, setSocialGallery] = useState([]);
     const [allProfiles, setAllProfiles] = useState([]);
+    const [collections, setCollections] = useState([]);
 
     // Fetch initial data from Supabase
     useEffect(() => {
@@ -54,7 +55,11 @@ export const ShopProvider = ({ children }) => {
                 const { data: socialData } = await supabase.from('social_gallery').select('*').order('created_at', { ascending: false });
                 if (socialData) setSocialGallery(socialData);
 
-                // 7. Orders (If user logged in)
+                // 7. Collections
+                const { data: collectionsData } = await supabase.from('collections').select('*').order('created_at', { ascending: false });
+                if (collectionsData) setCollections(collectionsData);
+
+                // 8. Orders (If user logged in)
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session?.user) {
                     const { data: ordersData } = await supabase.from('orders').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
@@ -243,6 +248,28 @@ export const ShopProvider = ({ children }) => {
         return { error };
     };
 
+    // --- Collections Actions ---
+    const addCollection = async (collection) => {
+        const { data, error } = await supabase.from('collections').insert([collection]).select();
+        if (!error && data) setCollections(prev => [...prev, data[0]]);
+        return { data, error };
+    };
+
+    const updateCollection = async (collection) => {
+        const { id, ...rest } = collection;
+        const { data, error } = await supabase.from('collections').update(rest).eq('id', id).select();
+        if (!error && data && data[0]) {
+            setCollections(prev => prev.map(c => c.id === id ? data[0] : c));
+        }
+        return { data, error };
+    };
+
+    const removeCollection = async (id) => {
+        const { error } = await supabase.from('collections').delete().eq('id', id);
+        if (!error) setCollections(prev => prev.filter(c => c.id !== id));
+        return { error };
+    };
+
     // --- Banners, Announcements, Site Settings ---
     const addBanner = async (banner) => {
         const { data, error } = await supabase.from('banners').insert([banner]).select();
@@ -409,6 +436,7 @@ export const ShopProvider = ({ children }) => {
             aboutData, setAboutData,
             addProduct, updateProduct, removeProduct,
             addCategory, updateCategory, removeCategory,
+            collections, addCollection, updateCollection, removeCollection,
             addBanner, updateBanner, deleteBanner,
             addAnnouncement, updateAnnouncement, deleteAnnouncement,
             updateAboutData,

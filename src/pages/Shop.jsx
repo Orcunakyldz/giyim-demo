@@ -33,9 +33,11 @@ const Shop = () => {
     const filteredProducts = (products || [])
         .filter(p => {
             if (!p) return false;
+            const collectionParam = searchParams.get('collection');
+            const collectionMatch = !collectionParam || p.collection === collectionParam;
             const categoryMatch = selectedCategory === 'Hepsi' || p.category === selectedCategory;
             const genderMatch = p.gender === 'unisex' || p.gender === selectedGender;
-            return categoryMatch && genderMatch;
+            return categoryMatch && genderMatch && collectionMatch;
         })
         .sort((a, b) => {
             const priceA = (a.price || 0) * (1 - (a.discount || 0) / 100);
