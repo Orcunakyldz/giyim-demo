@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useShop } from '../context/ShopContext';
-import { Package, Image as ImageIcon, Megaphone, Plus, ShoppingCart, Info, Users } from 'lucide-react';
+import { Package, Image as ImageIcon, Megaphone, Plus, ShoppingCart, Info, Users, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Modular Components
@@ -13,6 +13,7 @@ import AdminOrders from '../components/admin/AdminOrders';
 import AdminAbout from '../components/admin/AdminAbout';
 import AdminCustomers from '../components/admin/AdminCustomers';
 import AdminSocial from '../components/admin/AdminSocial';
+import AdminCoupons from '../components/admin/AdminCoupons';
 
 const Admin = () => {
   const {
@@ -59,6 +60,9 @@ const Admin = () => {
           <button className={activeTab === 'social' ? 'active' : ''} onClick={() => setActiveTab('social')}>
             <ImageIcon size={20} /> <span>Social Galeri</span>
           </button>
+          <button className={activeTab === 'coupons' ? 'active' : ''} onClick={() => setActiveTab('coupons')}>
+            <Tag size={20} /> <span>Kuponlar</span>
+          </button>
         </div>
       </div>
 
@@ -72,7 +76,8 @@ const Admin = () => {
                     activeTab === 'orders' ? 'Siparişler' :
                       activeTab === 'customers' ? 'Müşteri Yönetimi' :
                         activeTab === 'about' ? 'Hakkımızda Sayfası' :
-                          activeTab === 'social' ? 'Anasayfa Sosyal Galeri' : 'Duyuru Satırı Yönetimi'}
+                          activeTab === 'social' ? 'Anasayfa Sosyal Galeri' :
+                            activeTab === 'coupons' ? 'Kupon ve Promosyon Yönetimi' : 'Duyuru Satırı Yönetimi'}
           </h1>
         </header>
 
@@ -127,6 +132,10 @@ const Admin = () => {
 
           {activeTab === 'social' && (
             <AdminSocial />
+          )}
+
+          {activeTab === 'coupons' && (
+            <AdminCoupons />
           )}
         </div>
       </main>

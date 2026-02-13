@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
 
 const CartSidebar = ({ isOpen, onClose }) => {
-  const { cart, removeFromCart, placeOrder, currentUser } = useShop();
+  const { cart, removeFromCart, updateCartQuantity, placeOrder, currentUser } = useShop();
   const navigate = useNavigate();
   const [step, setStep] = useState('cart'); // cart, checkout, success
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
@@ -69,23 +69,12 @@ const CartSidebar = ({ isOpen, onClose }) => {
             </div>
 
             <div className="cart-content">
-              {cart.length === 0 && step !== 'success' ? (
+              {cart.length === 0 ? (
                 <div className="empty-cart" style={{ padding: '2rem' }}>
                   <p>Sepetiniz boş.</p>
                   <button className="glow-btn" onClick={onClose} style={{ marginTop: '2rem' }}>Alışverişe Başla</button>
                 </div>
-              ) : step === 'success' ? (
-                <div className="order-success-view" style={{ padding: '3rem', textAlign: 'center' }}>
-                  <div className="success-icon" style={{ color: '#000', marginBottom: '2rem' }}>
-                    <CheckCircle size={80} strokeWidth={1} />
-                  </div>
-                  <h3 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Siparişiniz Alındı!</h3>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '3rem' }}>
-                    Sipariş simülasyonu başarıyla tamamlandı. Artık Admin panelinden siparişi kontrol edebilirsiniz.
-                  </p>
-                  <button className="glow-btn full-btn" onClick={closeAndReset}>Kapat</button>
-                </div>
-              ) : step === 'cart' ? (
+              ) : (
                 <>
                   <div className="cart-items">
                     {cart.map(item => (
@@ -116,58 +105,9 @@ const CartSidebar = ({ isOpen, onClose }) => {
                       <span className="total-price">{total.toFixed(0)} TL</span>
                     </div>
                     <p className="shipping-info">Kargo: <span>ÜCRETSİZ</span></p>
-                    <button className="glow-btn full-btn checkout-btn" onClick={() => setStep('checkout')}>Siparişini Tamamla</button>
+                    <button className="glow-btn full-btn checkout-btn" onClick={() => { onClose(); navigate('/checkout'); }}>Siparişini Tamamla</button>
                   </div>
                 </>
-              ) : (
-                <div className="checkout-form" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                  <div className="form-items-scrollable" style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
-                    <h3>Sipariş Bilgileri</h3>
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                      <div className="input-with-label">
-                        <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>AD SOYAD</label>
-                        <input
-                          type="text"
-                          placeholder="Adınız Soyadınız"
-                          value={customer.name}
-                          onChange={e => setCustomer({ ...customer, name: e.target.value })}
-                          style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px' }}
-                        />
-                      </div>
-                      <div className="input-with-label">
-                        <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>TELEFON</label>
-                        <input
-                          type="tel"
-                          placeholder="05XX XXX XX XX"
-                          value={customer.phone}
-                          onChange={e => setCustomer({ ...customer, phone: e.target.value })}
-                          style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px' }}
-                        />
-                      </div>
-                      <div className="input-with-label">
-                        <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>ADRES</label>
-                        <textarea
-                          placeholder="Teslimat Adresi"
-                          value={customer.address}
-                          onChange={e => setCustomer({ ...customer, address: e.target.value })}
-                          rows={3}
-                          style={{ width: '100%', padding: '1rem', border: '1px solid #eee', borderRadius: '10px', resize: 'none' }}
-                        />
-                      </div>
-                      {!currentUser && (
-                        <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.5rem' }}>
-                          💡 <span onClick={() => { closeAndReset(); navigate('/auth'); }} style={{ color: '#000', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Giriş yaparak</span> bilgilerinizi kaydedebilirsiniz.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="cart-footer">
-                    <button className="back-btn" onClick={() => setStep('cart')} style={{ width: '100%', marginBottom: '1rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Geri Dön</button>
-                    <button className="glow-btn full-btn" onClick={handleCheckout} disabled={isSimulating}>
-                      {isSimulating ? 'Sipariş İşleniyor...' : 'Siparişi Tamamla'}
-                    </button>
-                  </div>
-                </div>
               )}
             </div>
           </motion.div>

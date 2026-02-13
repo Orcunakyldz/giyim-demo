@@ -79,6 +79,9 @@ const MobileMenu = ({ isOpen, onClose }) => {
                             <button onClick={() => handleLinkClick('/')}><Home size={24} /> Ana Sayfa</button>
                             <button onClick={() => handleLinkClick('/shop')}><ShoppingBag size={24} /> Mağaza</button>
                             <button onClick={() => handleLinkClick('/collections')}><Package size={24} /> Koleksiyonlar</button>
+                            {currentUser?.profile?.role === 'admin' && (
+                                <button onClick={() => handleLinkClick('/admin')} style={{ color: 'var(--accent-color)' }}><Package size={24} /> Admin Paneli</button>
+                            )}
 
                             {currentUser ? (
                                 <button onClick={() => handleLinkClick('/account')}><User size={24} /> Hesabım</button>

@@ -2,10 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
 import Navbar from '../components/Navbar';
-import { User, Package, LogOut, ChevronRight, ShoppingBag, Clock, CheckCircle, Lock } from 'lucide-react';
+import { User, Package, LogOut, ChevronRight, ShoppingBag, Clock, CheckCircle, Lock, Phone, MapPin, Home, Truck } from 'lucide-react';
 
 const Account = () => {
-    const { currentUser, orders, logout } = useShop();
+    const { currentUser, orders, logout, updateProfile } = useShop();
     const navigate = useNavigate();
 
     if (!currentUser) {
@@ -14,7 +14,51 @@ const Account = () => {
     }
 
     const [activeTab, setActiveTab] = React.useState('orders');
-    const userOrders = orders.filter(o => o.userId === currentUser.id);
+    const [saving, setSaving] = React.useState(false);
+    const [message, setMessage] = React.useState({ type: '', text: '' });
+
+    // Profile state
+    const [formData, setFormData] = React.useState({
+        name: '',
+        phone: '',
+        city: '',
+        district: '',
+        address: ''
+    });
+
+    React.useEffect(() => {
+        if (currentUser?.profile) {
+            const p = currentUser.profile;
+            setFormData({
+                name: p.name || '',
+                phone: p.phone || '',
+                city: p.city || '',
+                district: p.district || '',
+                address: p.address || ''
+            });
+        }
+    }, [currentUser]);
+
+    const handleProfileUpdate = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setMessage({ type: '', text: '' });
+
+        const { error } = await updateProfile(formData);
+
+        if (error) {
+            setMessage({ type: 'error', text: 'Güncelleme başarısız: ' + error });
+        } else {
+            setMessage({ type: 'success', text: 'Profil bilgileriniz başarıyla güncellendi.' });
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+        }
+        setSaving(false);
+    };
+
+    const userOrders = orders.filter(o => {
+        // Handle both UUID and potentially numeric IDs for mapping
+        return o.user_id === currentUser.id;
+    });
 
     return (
         <div className="account-page">
@@ -29,6 +73,9 @@ const Account = () => {
                         <div className="user-info">
                             <h1>Merhaba!</h1>
                             <p>{currentUser.email}</p>
+                            {currentUser?.profile?.role === 'admin' && (
+                                <span className="admin-badge">YÖNETİCİ</span>
+                            )}
                         </div>
                         <button className="logout-btn" onClick={() => { logout(); navigate('/'); }}>
                             <LogOut size={20} /> ÇIKIŞ YAP
@@ -67,10 +114,18 @@ const Account = () => {
                                                 <div className="order-main-info">
                                                     <div className="header-top">
                                                         <span className="order-id">#ORD-{order.id.toString().slice(-6)}</span>
-                                                        <span className="order-date"><Clock size={14} /> {order.date}</span>
+                                                        <span className="order-date"><Clock size={14} /> {new Date(order.created_at).toLocaleDateString('tr-TR')}</span>
                                                     </div>
-                                                    <div className="order-status-badge">
-                                                        <CheckCircle size={14} /> Sipariş Alındı
+                                                    <div className="order-status-badge" style={{
+                                                        background: order.status === 'pending' ? '#fff8e1' : order.status === 'shipped' ? '#e3f2fd' : order.status === 'delivered' ? '#e8f5e9' : '#f5f5f5',
+                                                        color: order.status === 'pending' ? '#f57c00' : order.status === 'shipped' ? '#1976d2' : order.status === 'delivered' ? '#2e7d32' : '#666'
+                                                    }}>
+                                                        {order.status === 'pending' && <Clock size={14} />}
+                                                        {order.status === 'shipped' && <Truck size={14} />}
+                                                        {order.status === 'delivered' && <CheckCircle size={14} />}
+                                                        {order.status === 'pending' ? 'Hazırlanıyor' :
+                                                            order.status === 'shipped' ? 'Kargoya Verildi' :
+                                                                order.status === 'delivered' ? 'Teslim Edildi' : 'Bekliyor'}
                                                     </div>
                                                     <div className="order-items-summary">
                                                         {order.items.map((item, idx) => (
@@ -82,8 +137,7 @@ const Account = () => {
                                                 </div>
                                                 <div className="order-price-info">
                                                     <span className="label">Toplam Tutar</span>
-                                                    <span className="value">{order.total.toFixed(2)} TL</span>
-                                                    <button className="detail-btn">Detay <ChevronRight size={16} /></button>
+                                                    <span className="value">{order.total.toFixed(0)} TL</span>
                                                 </div>
                                             </div>
                                         ))}
@@ -93,15 +147,99 @@ const Account = () => {
                         ) : (
                             <div className="profile-section">
                                 <h2>Profil Bilgilerim</h2>
-                                <div className="profile-card glass">
+                                <form className="profile-card glass" onSubmit={handleProfileUpdate}>
+                                    {message.text && (
+                                        <div className={`status-message ${message.type}`} style={{
+                                            padding: '1rem',
+                                            borderRadius: '8px',
+                                            marginBottom: '1.5rem',
+                                            background: message.type === 'success' ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)',
+                                            color: message.type === 'success' ? '#2ecc71' : '#e74c3c',
+                                            border: `1px solid ${message.type === 'success' ? '#2ecc71' : '#e74c3c'}`
+                                        }}>
+                                            {message.text}
+                                        </div>
+                                    )}
+
+                                    <div className="profile-grid">
+                                        <div className="profile-field">
+                                            <label>Ad Soyad</label>
+                                            <div className="input-wrapper">
+                                                <User size={18} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Henüz girilmedi"
+                                                    value={formData.name}
+                                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="profile-field">
+                                            <label>Telefon</label>
+                                            <div className="input-wrapper">
+                                                <Phone size={18} />
+                                                <input
+                                                    type="tel"
+                                                    placeholder="Henüz girilmedi"
+                                                    value={formData.phone}
+                                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="profile-grid">
+                                        <div className="profile-field">
+                                            <label>Şehir</label>
+                                            <div className="input-wrapper">
+                                                <MapPin size={18} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Henüz girilmedi"
+                                                    value={formData.city}
+                                                    onChange={e => setFormData({ ...formData, city: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="profile-field">
+                                            <label>İlçe</label>
+                                            <div className="input-wrapper">
+                                                <MapPin size={18} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Henüz girilmedi"
+                                                    value={formData.district}
+                                                    onChange={e => setFormData({ ...formData, district: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="profile-field">
+                                        <label>Açık Adres</label>
+                                        <div className="input-wrapper textarea-wrapper">
+                                            <Home size={18} />
+                                            <textarea
+                                                placeholder="Henüz girilmedi"
+                                                rows={3}
+                                                value={formData.address}
+                                                onChange={e => setFormData({ ...formData, address: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div className="profile-field">
                                         <label>E-POSTA ADRESİ</label>
-                                        <input type="email" value={currentUser.email} readOnly />
+                                        <div className="input-wrapper readonly">
+                                            <Lock size={18} />
+                                            <input type="email" value={currentUser.email} readOnly />
+                                        </div>
                                     </div>
-                                    <div className="profile-info-note">
-                                        <Lock size={14} /> Güvenlik gerekçesiyle e-posta adresi değiştirilemez.
-                                    </div>
-                                </div>
+
+                                    <button type="submit" className="glow-btn full-btn" disabled={saving}>
+                                        {saving ? 'KAYDEDİLİYOR...' : 'DEĞİŞİKLİKLERİ KAYDET'}
+                                    </button>
+                                </form>
                             </div>
                         )}
                     </div>

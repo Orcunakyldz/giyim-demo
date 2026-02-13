@@ -40,9 +40,11 @@ const Navbar = () => {
                 </Link>
               )}
 
-              <Link to="/admin" className="admin-link" title="Admin Panel">
-                <span style={{ fontSize: '0.6rem', background: '#000', color: '#fff', padding: '2px 5px', borderRadius: '4px' }}>ADM</span>
-              </Link>
+              {currentUser?.profile?.role === 'admin' && (
+                <Link to="/admin" className="admin-link" title="Admin Panel">
+                  <span style={{ fontSize: '0.6rem', background: '#000', color: '#fff', padding: '2px 5px', borderRadius: '4px' }}>ADM</span>
+                </Link>
+              )}
 
               <div className="cart-trigger" onClick={() => setIsCartOpen(true)} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <ShoppingBag size={30} style={{ transition: 'transform 0.2s', cursor: 'pointer' }} />

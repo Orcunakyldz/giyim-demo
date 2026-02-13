@@ -4,7 +4,11 @@ import { useShop } from '../context/ShopContext';
 import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useShop();
+  const { addToCart, reviews } = useShop();
+  const productReviews = reviews?.filter(r => String(r.product_id) === String(product.id)) || [];
+  const avgRating = productReviews.length > 0
+    ? (productReviews.reduce((acc, r) => acc + r.rating, 0) / productReviews.length)
+    : 0;
   const navigate = useNavigate();
   const discountedPrice = product.discount > 0
     ? (product.price * (100 - product.discount)) / 100
@@ -67,11 +71,16 @@ const ProductCard = ({ product }) => {
 
         <div className="rating-container">
           <div className="stars">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={14} fill="#000" color="#000" />
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                size={14}
+                fill={star <= avgRating ? "var(--rating-gold)" : "none"}
+                color={star <= avgRating ? "var(--rating-gold)" : "#ccc"}
+              />
             ))}
           </div>
-          <span className="rating-count">(740)</span>
+          <span className="rating-count">({productReviews.length})</span>
         </div>
 
         <div className="delivery-info">

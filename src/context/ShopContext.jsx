@@ -12,10 +12,15 @@ export const ShopProvider = ({ children }) => {
     const [announcements, setAnnouncements] = useState([]);
     const [orders, setOrders] = useState([]);
     const [aboutData, setAboutData] = useState(null);
-    const [cart, setCart] = useState([]);
+    const [cart, setCart] = useState(() => {
+        const localCart = localStorage.getItem('giyim_cart');
+        return localCart ? JSON.parse(localCart) : [];
+    });
     const [socialGallery, setSocialGallery] = useState([]);
     const [allProfiles, setAllProfiles] = useState([]);
     const [collections, setCollections] = useState([]);
+    const [coupons, setCoupons] = useState([]);
+    const [reviews, setReviews] = useState([]);
 
     // Fetch initial data from Supabase
     useEffect(() => {
@@ -23,8 +28,46 @@ export const ShopProvider = ({ children }) => {
             try {
                 setLoading(true);
 
-                // 1. Products
-                const { data: productsData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+                // Parallel fetch for initial speed boost
+                const results = await Promise.all([
+                    supabase.from('products').select('*').order('created_at', { ascending: false }),
+                    supabase.from('categories').select('*'),
+                    supabase.from('banners').select('*').order('created_at', { ascending: false }),
+                    supabase.from('announcements').select('*').order('created_at', { ascending: false }),
+                    supabase.from('site_settings').select('data').eq('id', 'about_data').single(),
+                    supabase.from('social_gallery').select('*').order('created_at', { ascending: false }),
+                    supabase.from('collections').select('*').order('created_at', { ascending: false }),
+                    supabase.from('coupons').select('*').order('created_at', { ascending: false }),
+                    supabase.from('reviews').select('*').order('created_at', { ascending: false }),
+                    supabase.auth.getSession()
+                ]);
+
+                // Map results to data and check for individual errors
+                const [
+                    { data: productsData, error: pErr },
+                    { data: categoriesData, error: catErr },
+                    { data: bannersData, error: bErr },
+                    { data: announcementsData, error: aErr },
+                    { data: settingsData, error: sErr },
+                    { data: socialData, error: socErr },
+                    { data: collectionsData, error: colErr },
+                    { data: couponsData, error: coupErr },
+                    { data: reviewsData, error: revErr },
+                    { data: authData, error: authErr }
+                ] = results;
+
+                if (pErr) console.error("Error fetching products:", pErr);
+                if (catErr) console.error("Error fetching categories:", catErr);
+                if (bErr) console.error("Error fetching banners:", bErr);
+                if (aErr) console.error("Error fetching announcements:", aErr);
+                if (socErr) console.error("Error fetching social gallery:", socErr);
+                if (colErr) console.error("Error fetching collections:", colErr);
+                if (coupErr) console.error("Error fetching coupons (migration check?):", coupErr);
+                if (revErr) console.error("Error fetching reviews (migration check?):", revErr);
+
+                const session = authData?.session;
+
+                // 1. Set Products
                 if (productsData) {
                     setProducts(productsData.map(p => ({
                         ...p,
@@ -35,34 +78,34 @@ export const ShopProvider = ({ children }) => {
                     })));
                 }
 
-                // 2. Categories
-                const { data: categoriesData } = await supabase.from('categories').select('*');
+                // 2. Set Categories
                 if (categoriesData) setCategories(categoriesData);
 
-                // 3. Banners
-                const { data: bannersData } = await supabase.from('banners').select('*').order('created_at', { ascending: false });
+                // 3. Set Banners
                 if (bannersData) setBanners(bannersData);
 
-                // 4. Announcements
-                const { data: announcementsData } = await supabase.from('announcements').select('*').order('created_at', { ascending: false });
+                // 4. Set Announcements
                 if (announcementsData) setAnnouncements(announcementsData);
 
-                // 5. About Settings
-                const { data: settingsData } = await supabase.from('site_settings').select('data').eq('id', 'about_data').single();
-                if (settingsData) setAboutData(settingsData.data);
+                // 5. Set About Data
+                if (settingsData && settingsData.data) setAboutData(settingsData.data);
 
-                // 6. Social Gallery
-                const { data: socialData } = await supabase.from('social_gallery').select('*').order('created_at', { ascending: false });
+                // 6. Set Social Gallery
                 if (socialData) setSocialGallery(socialData);
 
-                // 7. Collections
-                const { data: collectionsData } = await supabase.from('collections').select('*').order('created_at', { ascending: false });
+                // 7. Set Collections
                 if (collectionsData) setCollections(collectionsData);
 
-                // 8. Orders (If user logged in)
-                const { data: { session } } = await supabase.auth.getSession();
+                // 8. Set Coupons
+                if (couponsData) setCoupons(couponsData);
+
+                // 9. Set Reviews
+                if (reviewsData) setReviews(reviewsData);
+
+                // 10. Set Orders (If user logged in)
                 if (session?.user) {
-                    const { data: ordersData } = await supabase.from('orders').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
+                    const { data: ordersData, error: oErr } = await supabase.from('orders').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
+                    if (oErr) console.error("Error fetching user orders:", oErr);
                     if (ordersData) setOrders(ordersData);
                 }
 
@@ -76,12 +119,22 @@ export const ShopProvider = ({ children }) => {
         fetchAllData();
     }, []);
 
-    // Supabase Auth Listener
+    // Supabase Auth Listener & Profile Sync
     useEffect(() => {
+        const fetchProfile = async (userId) => {
+            const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            if (!error && data) {
+                setCurrentUser(prev => ({ ...prev, profile: data }));
+            }
+        };
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setCurrentUser(session?.user ?? null);
-            if (session?.user) {
-                supabase.from('orders').select('*').eq('user_id', session.user.id).then(({ data }) => {
+            const user = session?.user ?? null;
+            setCurrentUser(user);
+
+            if (user) {
+                fetchProfile(user.id);
+                supabase.from('orders').select('*').eq('user_id', user.id).then(({ data }) => {
                     if (data) setOrders(data);
                 });
             } else {
@@ -90,6 +143,22 @@ export const ShopProvider = ({ children }) => {
         });
         return () => subscription.unsubscribe();
     }, []);
+
+    const updateProfile = async (profileData) => {
+        if (!currentUser) return { error: 'Giriş yapılmadı.' };
+        const { error } = await supabase
+            .from('profiles')
+            .update(profileData)
+            .eq('id', currentUser.id);
+
+        if (!error) {
+            setCurrentUser(prev => ({
+                ...prev,
+                profile: { ...prev.profile, ...profileData }
+            }));
+        }
+        return { error };
+    };
 
     const updateCartQuantity = (id, size, delta) => {
         setCart((prev) => {
@@ -158,6 +227,20 @@ export const ShopProvider = ({ children }) => {
     const deleteOrder = async (id) => {
         const { error } = await supabase.from('orders').delete().eq('id', id);
         if (!error) setOrders(prev => prev.filter(order => order.id !== id));
+    };
+
+    const updateOrderStatus = async (orderId, newStatus) => {
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ status: newStatus })
+            .eq('id', orderId)
+            .select();
+
+        if (!error && data && data[0]) {
+            setOrders(prev => prev.map(order => order.id === orderId ? data[0] : order));
+            return { success: true };
+        }
+        return { success: false, error };
     };
 
     // --- Product & Category Actions ---
@@ -344,6 +427,32 @@ export const ShopProvider = ({ children }) => {
         return { data, error };
     };
 
+    // --- Coupons Action ---
+    const addCoupon = async (coupon) => {
+        const { data, error } = await supabase.from('coupons').insert([coupon]).select();
+        if (!error && data) setCoupons(prev => [data[0], ...prev]);
+        return { data, error };
+    };
+
+    const deleteCoupon = async (id) => {
+        const { error } = await supabase.from('coupons').delete().eq('id', id);
+        if (!error) setCoupons(prev => prev.filter(c => c.id !== id));
+        return { error };
+    };
+
+    // --- Reviews Actions ---
+    const addReview = async (review) => {
+        const { data, error } = await supabase.from('reviews').insert([review]).select();
+        if (!error && data) setReviews(prev => [data[0], ...prev]);
+        return { data, error };
+    };
+
+    const deleteReview = async (id) => {
+        const { error } = await supabase.from('reviews').delete().eq('id', id);
+        if (!error) setReviews(prev => prev.filter(r => r.id !== id));
+        return { error };
+    };
+
     // --- Authentication ---
     const register = async (email, password) => {
         // First check if user exists in profiles to give a clear error
@@ -377,6 +486,7 @@ export const ShopProvider = ({ children }) => {
     const logout = async () => {
         await supabase.auth.signOut();
         setCart([]);
+        localStorage.removeItem('giyim_cart');
     };
 
     const resetPassword = async (email) => {
@@ -394,10 +504,15 @@ export const ShopProvider = ({ children }) => {
     };
 
     // --- Persistent Cart Sync ---
-    // Fetch cart from DB on login
+    // 1. Local Storage Sync (Every change)
+    useEffect(() => {
+        localStorage.setItem('giyim_cart', JSON.stringify(cart));
+    }, [cart]);
+
+    // 2. Fetch cart from DB on login & Merge
     useEffect(() => {
         if (currentUser) {
-            const fetchCart = async () => {
+            const syncDBCart = async () => {
                 const { data, error } = await supabase
                     .from('cart')
                     .select('items')
@@ -405,24 +520,29 @@ export const ShopProvider = ({ children }) => {
                     .single();
 
                 if (!error && data?.items) {
+                    // Merge logic: DB cart takes priority, but we can combine or just replace
+                    // Replacement is safer for "one source of truth"
                     setCart(data.items);
+                } else if (cart.length > 0) {
+                    // If DB is empty but we have local items, upload them
+                    await supabase.from('cart').upsert({ user_id: currentUser.id, items: cart });
                 }
             };
-            fetchCart();
+            syncDBCart();
         }
-    }, [currentUser]);
+    }, [currentUser?.id]);
 
-    // Save cart to DB on change
+    // 3. Save cart to DB with debounce
     useEffect(() => {
         if (currentUser && cart.length > 0) {
-            const saveCart = async () => {
+            const timer = setTimeout(async () => {
                 await supabase
                     .from('cart')
                     .upsert({ user_id: currentUser.id, items: cart }, { onConflict: 'user_id' });
-            };
-            saveCart();
+            }, 1000);
+            return () => clearTimeout(timer);
         }
-    }, [cart, currentUser]);
+    }, [cart, currentUser?.id]);
 
     return (
         <ShopContext.Provider value={{
@@ -431,7 +551,7 @@ export const ShopProvider = ({ children }) => {
             announcements, setAnnouncements,
             categories, setCategories,
             cart, addToCart, removeFromCart, updateCartQuantity,
-            orders, placeOrder, deleteOrder,
+            orders, placeOrder, deleteOrder, updateOrderStatus,
             currentUser, loading,
             aboutData, setAboutData,
             addProduct, updateProduct, removeProduct,
@@ -439,8 +559,10 @@ export const ShopProvider = ({ children }) => {
             collections, addCollection, updateCollection, removeCollection,
             addBanner, updateBanner, deleteBanner,
             addAnnouncement, updateAnnouncement, deleteAnnouncement,
-            updateAboutData,
+            updateAboutData, updateProfile,
             socialGallery, addSocialImage, deleteSocialImage,
+            coupons, addCoupon, deleteCoupon,
+            reviews, addReview, deleteReview,
             register, login, logout, resetPassword, updatePassword,
             allProfiles, fetchCustomers
         }}>

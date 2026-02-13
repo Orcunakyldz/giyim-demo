@@ -1,5 +1,4 @@
--- ============================================================
--- GIYIM SPORTS - ULTIMATE MASTER SCHEMA (V1.3)
+-- GIYIM SPORTS - ULTIMATE MASTER SCHEMA (V1.5)
 -- Purpose: Consolidates all tables, columns, and policies.
 -- ============================================================
 
@@ -58,6 +57,11 @@ CREATE TABLE IF NOT EXISTS public.orders (
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid REFERENCES auth.users(id) PRIMARY KEY,
   email text,
+  name text,
+  phone text,
+  city text,
+  district text,
+  address text,
   role text DEFAULT 'customer',
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -93,6 +97,34 @@ CREATE TABLE IF NOT EXISTS public.social_gallery (
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Sepet Verileri (Persistent Cart)
+CREATE TABLE IF NOT EXISTS public.cart (
+  user_id uuid REFERENCES auth.users(id) PRIMARY KEY,
+  items jsonb DEFAULT '[]',
+  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Coupons (Sponsor management)
+CREATE TABLE IF NOT EXISTS public.coupons (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  code text NOT NULL UNIQUE,
+  discount_percent integer NOT NULL,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Reviews (Customer feedback)
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  product_id bigint REFERENCES public.products(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  name text NOT NULL,
+  surname text NOT NULL,
+  title text NOT NULL,
+  comment text NOT NULL,
+  rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- 3. COLUMN SYNC (Ensures missing columns are added to existing tables)
 DO $$ 
 BEGIN
@@ -125,6 +157,9 @@ ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.social_gallery ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cart ENABLE ROW LEVEL SECURITY;
 
 -- Products Policies
 DROP POLICY IF EXISTS "Public Select Products" ON public.products;
@@ -180,7 +215,30 @@ CREATE POLICY "Public Manage Orders" ON public.orders FOR ALL USING (true);
 
 -- Profiles Policies
 DROP POLICY IF EXISTS "Public Select Profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Public Select Profiles" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Coupons Policies
+DROP POLICY IF EXISTS "Public Select Coupons" ON public.coupons;
+DROP POLICY IF EXISTS "Admin Manage Coupons" ON public.coupons;
+CREATE POLICY "Public Select Coupons" ON public.coupons FOR SELECT USING (true);
+CREATE POLICY "Admin Manage Coupons" ON public.coupons FOR ALL USING (true);
+
+-- Reviews Policies
+DROP POLICY IF EXISTS "Public Select Reviews" ON public.reviews;
+DROP POLICY IF EXISTS "User Insert Reviews" ON public.reviews;
+DROP POLICY IF EXISTS "User/Admin Delete Reviews" ON public.reviews;
+CREATE POLICY "Public Select Reviews" ON public.reviews FOR SELECT USING (true);
+CREATE POLICY "User Insert Reviews" ON public.reviews FOR INSERT WITH CHECK (true);
+CREATE POLICY "User/Admin Delete Reviews" ON public.reviews FOR DELETE USING (
+  auth.uid() = user_id OR 
+  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+);
+
+-- Cart Policies
+DROP POLICY IF EXISTS "Users can manage own cart" ON public.cart;
+CREATE POLICY "Users can manage own cart" ON public.cart FOR ALL USING (auth.uid() = user_id);
 
 -- ============================================================
 -- ULTIMATE MASTER SCHEMA COMPLETE ✅
